@@ -10,11 +10,20 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
-    let itemArray = ["Find Mike", "Contact with seller", "Check the rent"]
+    var itemArray : [String] = [String]()
+    
+    var defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        //To grab data from local storage , and if it is nil it will be crashed so we have to do if statement
+        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+            
+            itemArray = items
+        }
+        
     }
     
     //MARK: - TableView DataSource Method
@@ -54,7 +63,46 @@ class TodoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         
     }
+    
+    
+    //MARK: - Add New Item
+    
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert) //Main alert
+        
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            // What will happen once the user clicks Add Item button on UIAlert
+            
+            if textField.text != "" {
+                
+            self.itemArray.append(textField.text!)
+                
+            self.defaults.set(self.itemArray, forKey: "TodoListArray") //To save data inside the local storage
+            
+            self.tableView.reloadData() //Magic method that relaod and refresh the table view after adding a new item.
+            
+        } //The button of alert
+            
+            }
+        
+        alert.addTextField { (alertTextField) in
+            
+            alertTextField.placeholder = "Create New Item"
+            
+            textField = alertTextField //because alertTextField is local virable and we want to use it globally
+            
+        }
+        
+        alert.addAction(action)
 
+        //show AlertViewController
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    
 
 }
 
