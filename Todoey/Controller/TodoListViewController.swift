@@ -10,16 +10,25 @@ import UIKit
 
 class TodoListViewController: UITableViewController {
     
-    var itemArray : [String] = [String]()
+    var itemArray : [Item] = [Item]()
     
     var defaults = UserDefaults.standard
+    
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        for index in 0...20 {
+            let object = Item()
+            
+            object.itemTitle = String(index)
+            itemArray.append(object)
+        }
+        
         //To grab data from local storage , and if it is nil it will be crashed so we have to do if statement
-        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
             
             itemArray = items
         }
@@ -37,7 +46,11 @@ class TodoListViewController: UITableViewController {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "TodoItemCell", for: indexPath)
         
-        cell.textLabel?.text = itemArray[indexPath.row]
+        cell.textLabel?.text = itemArray[indexPath.row].itemTitle
+        
+        //Turnary Operator:
+        //value = condition ? valueIfTrue : valueIfFalse
+        cell.accessoryType = itemArray[indexPath.row].isChecked == true ? .checkmark : .none
         
         return cell
     }
@@ -53,11 +66,13 @@ class TodoListViewController: UITableViewController {
         if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
             
               tableView.cellForRow(at: indexPath)?.accessoryType = .none
+              itemArray[indexPath.row].isChecked = false
             
             }
         else {
             
              tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+             itemArray[indexPath.row].isChecked = true
         }
         
         tableView.deselectRow(at: indexPath, animated: true)
@@ -70,6 +85,8 @@ class TodoListViewController: UITableViewController {
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         var textField = UITextField()
+        let itemObject = Item()
+        
         
         let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert) //Main alert
         
@@ -77,11 +94,13 @@ class TodoListViewController: UITableViewController {
             // What will happen once the user clicks Add Item button on UIAlert
             
             if textField.text != "" {
+            
+            itemObject.itemTitle = textField.text!
                 
-            self.itemArray.append(textField.text!)
+            self.itemArray.append(itemObject)
                 
             self.defaults.set(self.itemArray, forKey: "TodoListArray") //To save data inside the local storage
-            
+        
             self.tableView.reloadData() //Magic method that relaod and refresh the table view after adding a new item.
             
         } //The button of alert
