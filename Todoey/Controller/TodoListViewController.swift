@@ -12,26 +12,30 @@ class TodoListViewController: UITableViewController {
     
     var itemArray : [Item] = [Item]()
     
-    var defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Item.plist") //our own local storage path
     
     
-
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        for index in 0...20 {
-            let object = Item()
-            
-            object.itemTitle = String(index)
-            itemArray.append(object)
-        }
+        print(dataFilePath!)
+        
+        
+//        for index in 0...7 {
+//            let object = Item()
+//            
+//            object.itemTitle = String(index)
+//            itemArray.append(object)
+//        }
+        
+        loadItem() //To grab data from Item.plist (local storage)
         
         //To grab data from local storage , and if it is nil it will be crashed so we have to do if statement
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            
-            itemArray = items
-        }
+//        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
+//
+//            itemArray = items
+//        }
         
     }
     
@@ -61,21 +65,11 @@ class TodoListViewController: UITableViewController {
         
 //        print(itemArray[indexPath.row])
         
-      
+    itemArray[indexPath.row].isChecked = !itemArray[indexPath.row].isChecked
         
-        if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
-            
-              tableView.cellForRow(at: indexPath)?.accessoryType = .none
-              itemArray[indexPath.row].isChecked = false
-            
-            }
-        else {
-            
-             tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-             itemArray[indexPath.row].isChecked = true
-        }
+    saveItem()
         
-        tableView.deselectRow(at: indexPath, animated: true)
+    tableView.deselectRow(at: indexPath, animated: true)
         
     }
     
@@ -99,9 +93,7 @@ class TodoListViewController: UITableViewController {
                 
             self.itemArray.append(itemObject)
                 
-            self.defaults.set(self.itemArray, forKey: "TodoListArray") //To save data inside the local storage
-        
-            self.tableView.reloadData() //Magic method that relaod and refresh the table view after adding a new item.
+           self.saveItem()
             
         } //The button of alert
             
@@ -119,6 +111,37 @@ class TodoListViewController: UITableViewController {
 
         //show AlertViewController
         self.present(alert, animated: true, completion: nil)
+    }
+    
+    //MARK: - Method Manupulation Method
+    
+    func saveItem() { //To save item into Item.plist file
+        
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print("Encoder error is: \(error)")
+        }
+        
+        
+        self.tableView.reloadData() //Magic method that relaod and refresh the table view after adding a new item.
+    }
+    
+    func loadItem() {
+        
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            
+            let decoder = PropertyListDecoder()
+            
+            do {
+            itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print("Decoder error is: \(error)")
+            }
+        }
     }
     
     
