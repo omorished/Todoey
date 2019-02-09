@@ -7,12 +7,14 @@
 //
 
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryViewController: UITableViewController {
     
-    var categories = [Category]()
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+    let realm = try! Realm()
+
+    var categories: Results<Category>? //it is auto-update countainer
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,13 +27,14 @@ class CategoryViewController: UITableViewController {
     //MARK: - TableView Datasource Mesthods
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        return categories.count
+        return categories?.count ?? 1 //it called nil coallescing operator which means, if it is not nil return categories.count but if it is nil return 1
+  
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        cell.textLabel?.text = categories[indexPath.row].name
+        cell.textLabel?.text = categories?[indexPath.row].name ?? "No Categories Added Yet!"
         
         
         return cell
@@ -55,11 +58,10 @@ class CategoryViewController: UITableViewController {
             
             if let indexPath = tableView.indexPathForSelectedRow {
                 
-                destenationVC.selectedCategory = categories[indexPath.row]
+                destenationVC.selectedCategory = categories?[indexPath.row]
                 
                 
             }
-            print(destenationVC.num = 10)
      
         
     }
@@ -77,11 +79,11 @@ class CategoryViewController: UITableViewController {
             
             if textField.text != "" {
                 
-                let newCategory = Category(context: self.context)
+                let newCategory = Category()
                 newCategory.name = textField.text!
-                self.categories.append(newCategory)
+//                self.categories.append(newCategory) //no need for this because the category virable is of Result datatype which is auto-updated countainer
                 
-                self.saveCategory()
+                self.save(category: newCategory)
             }
             
             
@@ -101,10 +103,12 @@ class CategoryViewController: UITableViewController {
     
     //MARK: - Manapulation Methods
     
-    func saveCategory() {
+    func save(category: Category) {
         
         do {
-        try context.save()
+           try realm.write {
+                realm.add(category)
+            }
         } catch {
             print(error)
         }
@@ -114,13 +118,8 @@ class CategoryViewController: UITableViewController {
     
     
     func loadCategory() {
-        
-        let request : NSFetchRequest<Category> = Category.fetchRequest()
-        do {
-            categories = try context.fetch(request)
-        } catch {
-            print(error)
-        }
+
+         categories = realm.objects(Category.self)
         
         tableView.reloadData()
         
@@ -130,3 +129,4 @@ class CategoryViewController: UITableViewController {
 
 }
 
+//0555103416 .. 684
